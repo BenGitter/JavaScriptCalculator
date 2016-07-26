@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Javascript Calculator</title>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="script.js"></script>
+  <link href="style.css" rel="stylesheet" />
+</head>
+<body>
+<div class="container-fluid">
+
+  <div class="row" id="header">
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12">Calculator</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12 col-sm-8">
+
+      <div class="row" id="display-area">
+        <div class="col-xs-12">
+          <div class="row">
+            <div class="col-xs-12" id="top">67 + 6 x 9</div>
+            <div class="col-xs-12" id="bottom"><h3>Ans</h3></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" id="special-buttons">
+        <div class="col-xs-12">
+          <div class="btn-elem">x^2</div>
+          <div class="btn-elem">x^y</div>
+          <div class="btn-elem">sin</div>
+          <div class="btn-elem">cos</div>
+          <div class="btn-elem">tan</div>
+          <div class="btn-elem">sqrt</div>
+          <div class="btn-elem">10^x</div>
+          <div class="btn-elem">log</div>
+          <div class="btn-elem">Exp</div>
+          <div class="btn-elem">Mod</div>
+        </div>
+      </div>
+
+      <div class="row" id="standard-buttons">
+        <div class="col-xs-12">
+          <div class="btn-elem">^</div>
+          <div class="btn-elem">CE</div>
+          <div class="btn-elem">C</div>
+          <div class="btn-elem">&lt;</div>
+          <div class="btn-elem">/</div>
+          <div class="btn-elem">PI</div>
+          <div class="btn-elem">7</div>
+          <div class="btn-elem">8</div>
+          <div class="btn-elem">9</div>
+          <div class="btn-elem">x</div>
+          <div class="btn-elem">n!</div>
+          <div class="btn-elem">4</div>
+          <div class="btn-elem"><span>5</span></div>
+          <div class="btn-elem">6</div>
+          <div class="btn-elem">-</div>
+          <div class="btn-elem">+/-</div>
+          <div class="btn-elem">1</div>
+          <div class="btn-elem">2</div>
+          <div class="btn-elem">3</div>
+          <div class="btn-elem">+</div>
+          <div class="btn-elem">(</div>
+          <div class="btn-elem">)</div>
+          <div class="btn-elem">0</div>
+          <div class="btn-elem">,</div>
+          <div class="btn-elem" id="is-sign">=</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-4 hidden-xs" id="history">
+      <h3>History</h3>
+      <ul>
+        <li>
+          5 x 8 + 3 X 9 =
+        </li>
+        <li>
+          67
+        </li>
+        <li>
+          4 Mod 3
+        </li>
+        <li>
+          1
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
