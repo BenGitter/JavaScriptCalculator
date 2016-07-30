@@ -33,6 +33,7 @@ body{
   margin-top: 20px;
   font-size: 14px;
   color: #797979;
+  height: 20px;
 }
 
 #bottom{
@@ -122,5 +123,8 @@ body{
 @media (min-width: 600px) and (min-height: 600px) {
   .btn-elem{
     font-size: 20px;
+  }
+  .btn-elem img{
+    width: 40px;
   }
 }

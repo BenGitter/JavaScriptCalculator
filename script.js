@@ -1,25 +1,34 @@
-/*
-TO DO List:
--
-
-Ideas:
-- use object oriented programming
-- eval?
-- keyboard?
-*/
+//
+// TO DO List:
+// -
+//
+// Ideas:
+// - use object oriented programming
+// - eval?
+// - keyboard?
+//
 
 function d(o){
   console.log(o);
 }
 
 $(window).load(function(){
-  d($("#header").outerHeight());
+  //d($("#header").outerHeight());
 
     var Calculator = {
       buttonHeight: 0,
       buttonWidth: 0,
       appliedPadding: 0,
       specialButtonState: false,
+      displayBottom: $("#bottom h3"),
+      displayTop: $("#top"),
+      contentBottom: "0",
+      contentTop: "",
+      emptyBottom: false,
+      fullString: "",
+      firstStop: true,
+      calculated: false,
+
       init: function(){
         this.events();
         this.setSizeOfSections();
@@ -39,20 +48,228 @@ $(window).load(function(){
 
         // Button pressed
         $(".btn-elem").on('click', function(){
+          //d(self.fullString);
           var val = $(this).data("val");
-          if(val === "extra"){
-            self.changeSpecialButtons();
+          //alert(val);
+          switch(val){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+              self.processNumber.call(this);
+              break;
+            case "comma":
+              self.processComma.call(this);
+              break;
+            case "lbracket":
+            case "rbracket":
+              self.processBrackets.call(this);
+              break;
+            case "divide":
+            case "multiply":
+            case "minus":
+            case "plus":
+              self.processBasicMath.call(this);
+              break;
+            case "is":
+              self.calculateResult(true);
+              break;
+            case "plus-minus":
+              self.processPlusMinus.call(this);
+              break;
+            case "factor":
+              self.processFactorize.call(this);
+              break;
+            case "pi":
+              self.processPi.call(this);
+              break;
+            case "extra":
+              self.changeSpecialButtons.call(this);
+              break;
+            case "ce":
+            case "c":
+            case "back":
+              self.processRemove.call(this);
+              break;
+            case "squared":
+            case "power":
+            case "sqrt":
+            case "base":
+            case "log":
+            case "exp":
+            case "mod":
+              self.processSpecial();
+              break;
+            case "sin":
+            case "cos":
+            case "tan":
+              self.processGonio();
+              break;
+            default:
+              console.log("Key not found!");
           }
         });
       },
-      checkState: function(){
-        // Whenever a button is clicked
+      // All button functions:
+      processNumber: function(){
+        var val = $(this).data("val").toString(),
+            self = Calculator;
+
+        if(self.calculated){
+          self.fullString = "";
+          self.calculated = false;
+        }
+
+        if(self.emptyBottom){
+          self.contentBottom = "0";
+          self.emptyBottom = false;
+        }
+
+        if(self.contentBottom === "0"){
+          self.contentBottom = val;
+          self.displayBottom.html(self.contentBottom);
+        }else{
+          self.contentBottom += val;
+          self.displayBottom.html(self.contentBottom);
+        }
+
+        self.fullString += val;
       },
-      calculateResult: function(){
-        // Calculate result
+      processComma: function(){
+        var self = Calculator;
+
+        if(self.calculated){
+          self.fullString = "";
+          self.calculated = false;
+        }
+        if(self.emptyBottom){
+          self.contentBottom = "0";
+          self.emptyBottom = false;
+        }
+
+        if(self.contentBottom === ""){
+          self.contentBottom = "0";
+        }
+        d(self.contentBottom);
+        if(self.contentBottom.indexOf(".") < 0){
+          self.contentBottom += ".";
+          self.displayBottom.html(self.contentBottom);
+          self.fullString += ".";
+        }
       },
-      displayChanges: function(){
-        // Display result and update everything
+      processBrackets: function(){
+
+      },
+      processBasicMath: function(){
+        var val = $(this).data("val"),
+            self = Calculator,
+            operator,
+            realOperator,
+            contentBottom = self.contentBottom;
+        self.calculated = false;
+
+        switch(val){
+          case "plus":
+            operator = "+";
+            realOperator = "+";
+            self.calculateResult(false);
+            self.firstStop = true;
+            break;
+          case "minus":
+            operator = "&#8211;";
+            realOperator = "-";
+            self.calculateResult(false);
+            self.firstStop = true;
+            break;
+          case "multiply":
+            operator = "&times;";
+            realOperator = "*";
+            if(self.firstStop){
+              self.firstStop = false;
+            }else{
+              self.calculateResult(false);
+            }
+            break;
+          case "divide":
+            operator = "&divide;";
+            realOperator = "/";
+            if(self.firstStop){
+              self.firstStop = false;
+            }else{
+              self.calculateResult(false);
+            }
+            break;
+        }
+
+        self.contentTop += " " + contentBottom + " " + operator;
+        self.displayTop.html(self.contentTop);
+        self.emptyBottom = true;
+        self.fullString += realOperator;
+      },
+      processPlusMinus: function(){
+
+      },
+      processFactorize: function(){
+
+      },
+      processPi: function(){
+
+      },
+      processRemove: function(){
+        var val = $(this).data("val"),
+            self = Calculator;
+
+        switch(val){
+          case "ce":
+            self.contentBottom = "0";
+            break;
+          case "c":
+            self.contentBottom = "0";
+            self.contentTop = "";
+            break;
+          case "back":
+            if(self.contentBottom.length > 1){
+              self.contentBottom = self.contentBottom.slice(0,self.contentBottom.length-1);
+              break;
+            }else{
+              self.contentBottom = "0";
+            }
+        }
+
+        self.displayBottom.html(self.contentBottom);
+        self.displayTop.html(self.contentTop);
+        self.fullString = "";
+
+      },
+      processSpecial: function(){
+
+      },
+      processGonio: function(){
+
+      },
+      calculateResult: function(updateTop){
+        var self = Calculator,
+            result = Math.round(eval(self.fullString)*10000000000)/10000000000;
+
+        self.contentBottom = result;
+        self.displayBottom.html(self.contentBottom);
+
+        if(updateTop){
+          self.contentTop = "";
+          self.displayTop.html(self.contentTop);
+          self.emptyBottom = true;
+          self.fullString = result;
+          self.firstStop = true;
+          self.calculated = true;
+        }
+
+
       },
       setSizeOfSections: function(){
         var total = $(window).height();
