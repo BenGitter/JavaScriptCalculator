@@ -3,19 +3,15 @@
 // -
 //
 // Ideas:
-// - use object oriented programming
-// - eval?
 // - keyboard?
 //
 
-function d(o){
-  console.log(o);
-}
+var Calculator;
 
 $(window).load(function(){
   //d($("#header").outerHeight());
 
-    var Calculator = {
+    Calculator = {
       buttonHeight: 0,
       buttonWidth: 0,
       appliedPadding: 0,
@@ -28,6 +24,10 @@ $(window).load(function(){
       fullString: "",
       firstStop: true,
       calculated: false,
+      bracketCount: 0,
+      endWithOperator: false,
+      endOperator: "",
+      endWithBracket: false,
 
       init: function(){
         this.events();
@@ -48,6 +48,7 @@ $(window).load(function(){
 
         // Button pressed
         $(".btn-elem").on('click', function(){
+          console.log(self.fullString);
           //d(self.fullString);
           var val = $(this).data("val");
           //alert(val);
@@ -131,6 +132,13 @@ $(window).load(function(){
           self.emptyBottom = false;
         }
 
+        if(self.endWithBracket){
+          self.contentBottom = "0";
+          self.contentTop = "";
+          self.fullString = "";
+          self.displayTop.html(self.contentTop);
+        }
+
         if(self.contentBottom === "0"){
           self.contentBottom = val;
           self.displayBottom.html(self.contentBottom);
@@ -140,6 +148,8 @@ $(window).load(function(){
         }
 
         self.fullString += val;
+        self.endWithOperator = false;
+        self.endWithBracket = false;
       },
       processComma: function(){
         var self = Calculator;
@@ -165,6 +175,59 @@ $(window).load(function(){
       },
       processBrackets: function(){
 
+        // Operator in between bracket set
+        var self = Calculator,
+            val = $(this).data("val");
+
+        if(self.calculated){
+          self.calculated = false;
+        }
+
+        if(self.emptyBottom){
+          self.emptyBottom = true;
+        }
+
+        if(val === "lbracket"){
+          if(self.endWithBracket && self.fullString.slice(-1) === ")"){
+            var call = $("<div data-val='multiply'></div>");
+            self.processBasicMath.call(call);
+          }
+
+          if(self.fullString.toString().indexOf("(") >= 0){
+            self.contentBottom = "0";
+          }
+
+          if(self.contentBottom.toString() !== "0"){
+            self.fullString = self.fullString.toString().slice(0, self.fullString.length - self.contentBottom.length) + "(" + self.contentBottom;
+          }else{
+            self.fullString += "(";
+          }
+          self.contentTop += " (";
+          self.bracketCount++;
+        }
+
+        if(val === "rbracket" && self.bracketCount > 0){
+          if(self.endWithBracket){
+            self.fullString += "0";
+            self.contentTop += " 0 ";
+          }
+
+          if(self.contentBottom.toString() !== "0"){
+            self.emptyBottom = true;
+            self.contentTop += " " + self.contentBottom + " ";
+          }
+          self.fullString += ")";
+          self.contentTop += ") ";
+          self.bracketCount--;
+
+          if(self.bracketCount === 0){
+            self.calculateResult(false);
+          }
+        }
+
+        self.endWithBracket = true;
+        self.displayTop.html(self.contentTop);
+        self.endOperator = false;
       },
       processBasicMath: function(){
         var val = $(this).data("val"),
@@ -173,6 +236,14 @@ $(window).load(function(){
             realOperator,
             contentBottom = self.contentBottom;
         self.calculated = false;
+
+        if(self.endWithOperator){
+          console.log(self.fullString);
+          self.fullString = self.fullString.slice(0, self.fullString.length - 1);
+          self.contentTop = self.contentTop.slice(0, self.contentTop.length - self.endOperator.length);
+          console.log(self.fullString);
+        }
+
 
         switch(val){
           case "plus":
@@ -207,10 +278,30 @@ $(window).load(function(){
             break;
         }
 
-        self.contentTop += " " + contentBottom + " " + operator;
+        var leftBracket = false,
+            rightBracket = false;
+
+        if(self.endWithBracket){
+          if(self.fullString.toString().lastIndexOf(")") === self.fullString.length-1){
+            rightBracket = true;
+          }else{
+            leftBracket = true;
+          }
+        }
+        console.log(rightBracket);
+
+        if(self.endWithOperator || rightBracket){
+          self.contentTop += operator;
+        }else{
+          self.contentTop += " " + contentBottom + " " + operator;
+        }
+
         self.displayTop.html(self.contentTop);
         self.emptyBottom = true;
         self.fullString += realOperator;
+        self.endWithOperator = true;
+        self.endOperator = operator;
+        self.endWithBracket = false;
       },
       processPlusMinus: function(){
 
@@ -254,8 +345,13 @@ $(window).load(function(){
 
       },
       calculateResult: function(updateTop){
-        var self = Calculator,
-            result = Math.round(eval(self.fullString)*10000000000)/10000000000;
+        var self = Calculator;
+
+        if(self.bracketCount > 0){
+          return false;
+        }
+
+        var result = Math.round(eval(self.fullString)*10000000000)/10000000000;
 
         self.contentBottom = result;
         self.displayBottom.html(self.contentBottom);
@@ -267,6 +363,8 @@ $(window).load(function(){
           self.fullString = result;
           self.firstStop = true;
           self.calculated = true;
+          self.bracketCount = 0;
+          self.endWithBracket = false;
         }
 
 
