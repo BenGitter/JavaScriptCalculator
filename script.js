@@ -9,7 +9,6 @@
 var Calculator;
 
 $(window).load(function(){
-  //d($("#header").outerHeight());
 
     Calculator = {
       buttonHeight: 0,
@@ -49,7 +48,7 @@ $(window).load(function(){
         // Button pressed
         $(".btn-elem").on('click', function(){
           console.log(self.fullString);
-          //d(self.fullString);
+
           var val = $(this).data("val");
           //alert(val);
           switch(val){
@@ -166,7 +165,7 @@ $(window).load(function(){
         if(self.contentBottom === ""){
           self.contentBottom = "0";
         }
-        d(self.contentBottom);
+
         if(self.contentBottom.indexOf(".") < 0){
           self.contentBottom += ".";
           self.displayBottom.html(self.contentBottom);
