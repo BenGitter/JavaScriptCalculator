@@ -5,7 +5,7 @@ var Display = (function(){
       btnWidth,
       btnHeight,
       displayBottom = $("#bottom h3"), 
-      displayTop = $("#top");
+      displayTop = $("#top span");
 
   function init(){
     // Functions to run on start
@@ -91,9 +91,12 @@ Display.init();
 
 var Calculator = (function(){
   // Takes care of all the logic 
-  var contentTop = "0",
-      contentBottom = "0",
-      fullString = "";
+  var contentTop = "",
+      contentBottom = "0",  
+      fullString = "",      // NOT USED!
+      lastBtn = "",         // Val of last clicked button
+      emptyBottom = false,  // Should contentBottom be emptied
+      emptyTop = false;     // Should contentTop be emptied
 
   function init(){
     // Functions to run on start
@@ -105,6 +108,12 @@ var Calculator = (function(){
     $(".btn-elem").on('click', function(){
       // Check if button is clicked
       var val = $(this).data("val");
+
+      // Empty top if needed
+      if(emptyTop){
+        contentTop = "";
+        emptyTop = false;
+      }
 
       // Call function corresponding with the value
       switch(val){
@@ -122,7 +131,7 @@ var Calculator = (function(){
           processBasicMath(val);
           break;
         case "is":
-          calculateResult();
+          calculateResult(false);
           break;
         case "plus-minus":
           processPlusMinus();
@@ -150,6 +159,9 @@ var Calculator = (function(){
       // Update display after button press has been processed
       Display.updateContent(contentTop, contentBottom);
 
+      // Last pressed button
+      lastBtn = val;
+
     });
     
   }
@@ -157,27 +169,130 @@ var Calculator = (function(){
   function processNumber(val){
 
     // Check if contentBottom is equal to zero 
-    if(contentBottom === "0"){
+    if(contentBottom === "0" || emptyBottom){
       contentBottom = "";   // Remove the zero
+      emptyBottom = false;  // Set back to false
     }
 
     contentBottom += val;
   }
 
-  function processComma(){
+  function processBasicMath(val){
+    var operator,                       // Operator JS
+        operatorHTML,                   // Operator HTML
+        lengthOperator = [3, 9, 9, 10], // Length of operatorHTML
+        index = ["plus", "minus", "multiply", "divide"].indexOf(lastBtn); // Check if lastBtn was an operator
 
+    switch(val){
+      case "plus":
+        operator = "+";
+        operatorHTML = " + ";
+        break;
+      case "minus":
+        operator = "-";
+        operatorHTML = " &#8211; ";
+        break;
+      case "multiply":
+        operator = "*";
+        operatorHTML = " &times; ";
+        break;
+      case "divide":
+        operator = "/";
+        operatorHTML = " &divide; ";
+        break;
+    }
+
+    // Check if there already was an operator at the end
+    if(index < 0){
+      // If not add contentBottom to contentTop
+      contentTop += contentBottom;
+    }else{
+      // Else slice of the old operator
+      contentTop = contentTop.slice(0, contentTop.length - lengthOperator[index]);
+    }
+    
+    // Add the operator
+    contentTop += operatorHTML;
+
+    // Empty contentBottom when new number is inserted
+    emptyBottom = true;
+
+    // Calculate result if plus/minus
+    if(["plus", "minus"].indexOf(val) >= 0){
+      calculateResult(true);
+    }
+  }
+
+  function processComma(){
+    // If bottom should be emptied enter zero
+    if (emptyBottom){
+      contentBottom = "0";
+      emptyBottom = false;
+    } 
+
+    // Check if there is already a comma
+    if(contentBottom.indexOf(".") >= 0){
+      console.log("There is already a comma");
+      return true;
+    }
+    contentBottom += ".";
   }
 
   function processBrackets(val){
 
   }
 
-  function processBasicMath(val){
+  function calculateResult(intermediate){
+    var sum = contentTop;
 
+    sum = sum.replace(/ /g, "");          // remove spaces
+    sum = sum.replace(/&#8211;/g, "-");   // replace HTML minus
+    sum = sum.replace(/&times;/g, "*");   // replace HTML multiply
+    sum = sum.replace(/&divide;/g, "/");  // replace HTML divide
+
+    // Check if this intermediate step or final result
+    if(intermediate){
+      sum = sum.substr(0, sum.length-1);
+    }else{
+      sum += contentBottom;
+      contentTop += contentBottom;
+      emptyTop = true;
+    }
+
+    var result = eval(sum);
+
+    result = Math.round(result * 1000000) / 1000000;
+    contentBottom = result.toString();
+
+    // Check for infinity
+    if(contentBottom === "Infinity"){
+      contentBottom = "0";
+      contentTop = "Sum resulted in infiniity";
+      emptyTop = true;
+      return false;
+    }
+    // Make sure result will be removed if something else is clicked
+    emptyBottom = true;
+
+    // Add to history if final result is calculated
+    if(!intermediate){
+      addToHistory();
+    }
   }
 
-  function calculateResult(){
+  function addToHistory(){
+    var historyList = $("#history ul");
 
+    var liTop = $("<li />", {
+      html: contentTop
+    });
+    
+    var liBottom = $("<li />", {
+      html: contentBottom
+    })
+
+    historyList.prepend(liBottom);
+    historyList.prepend(liTop);
   }
 
   function processPlusMinus(){
@@ -193,7 +308,20 @@ var Calculator = (function(){
   }
 
   function processRemove(val){
+    if(val === "ce"){
+      contentBottom = "0";
+    }else if(val === "c"){
+      contentTop = "";
+      contentBottom = "0";
+    }else if(val === "back"){
+      if(contentBottom.length > 1){
+        contentBottom = contentBottom.slice(0, contentBottom.length -1);
+      }else{
+        contentBottom = "0";
+      }
+    }
 
+    lastBtn = "";
   }
 
   function processSpecial(val){
