@@ -26,6 +26,7 @@ body{
   border-bottom: 1px solid #DADADA;
   text-align: right;
   border-right: 1px solid #DADADA;
+  overflow: hidden;
 }
 
 #top{
