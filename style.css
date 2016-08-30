@@ -128,6 +128,12 @@ body{
   font-size: 14px;
   color: #797979;
 }
+#history .items ul{
+  cursor: pointer;
+}
+#history .items ul:hover{
+  background-color: #e6e6e6;
+}
 
 @media (min-width: 600px) and (min-height: 600px) {
   .btn-elem{

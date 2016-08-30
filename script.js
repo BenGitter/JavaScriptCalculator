@@ -205,7 +205,10 @@ var Calculator = (function(){
     // Check if there already was an operator at the end
     if(index < 0){
       // If not add contentBottom to contentTop
-      contentTop += contentBottom;
+      if(!emptyBottom || contentTop === ""){
+        contentTop += contentBottom;
+      }
+      
     }else{
       // Else slice of the old operator
       contentTop = contentTop.slice(0, contentTop.length - lengthOperator[index]);
@@ -281,8 +284,10 @@ var Calculator = (function(){
   }
 
   function addToHistory(){
-    var historyList = $("#history ul");
+    var historyList = $("#history .items");
 
+    var ul = $("<ul />");
+    
     var liTop = $("<li />", {
       html: contentTop
     });
@@ -291,8 +296,21 @@ var Calculator = (function(){
       html: contentBottom
     })
 
-    historyList.prepend(liBottom);
-    historyList.prepend(liTop);
+    ul.append(liTop);
+    ul.append(liBottom);
+    historyList.prepend(ul);
+
+    $("#history .items ul").unbind().on("click", function(){
+      var $lis = $(this).find("li");
+      contentTop = $lis.eq(0).html();
+      contentBottom = $lis.eq(1).html();
+      
+      emptyBottom = true;
+      emptyTop = false;
+
+      Display.updateContent(contentTop, contentBottom);
+    });
+
   }
 
   function processPlusMinus(){
