@@ -119,6 +119,7 @@ var Calculator = (function(){
       switch(val){
         case 0: case 1: case 2: case 3: case 4: 
         case 5: case 6: case 7: case 8: case 9:
+        case "pi":
           processNumber(val);
           break;
         case "comma":
@@ -138,9 +139,6 @@ var Calculator = (function(){
           break;
         case "factor":
           processFactorize();
-          break;
-        case "pi":
-          processPi();
           break;
         case "ce": case "c": case "back":
           processRemove(val);
@@ -167,14 +165,17 @@ var Calculator = (function(){
   }
 
   function processNumber(val){
-
+    // If lastBtn is rbracket: first input a "x"
+    if(lastBtn === "rbracket") processBasicMath("multiply");
     // Check if contentBottom is equal to zero 
     if(contentBottom === "0" || emptyBottom){
       contentBottom = "";   // Remove the zero
       emptyBottom = false;  // Set back to false
     }
 
-    contentBottom += val;
+    // Process PI 
+    if(parseInt(lastBtn) > 0) contentBottom += " &times; "
+    contentBottom += (val === "pi") ? "&pi;" : val;
   }
 
   function processBasicMath(val){
@@ -208,6 +209,10 @@ var Calculator = (function(){
       if(!emptyBottom || contentTop === ""){
         contentTop += contentBottom;
       }
+
+      if(emptyBottom && contentTop.charAt(contentTop.length-2) ===  "("){
+        contentTop += contentBottom;
+      }
       
     }else{
       // Else slice of the old operator
@@ -235,19 +240,44 @@ var Calculator = (function(){
 
     // Check if there is already a comma
     if(contentBottom.indexOf(".") >= 0){
-      console.log("There is already a comma");
       return true;
     }
     contentBottom += ".";
   }
 
   function processBrackets(val){
+    var numBrackets = (contentTop.match(/\(/g) || []).length - (contentTop.match(/\)/g) || []).length;
+
+    var bracket;
+
+    // Right bracket or left
+    if(val === "rbracket"){
+      // Don't do anything when no closing bracket is needed
+      if(numBrackets === 0) return false;
+
+      bracket = " ) ";
+      contentTop += contentBottom;
+      emptyBottom = true;
+    }else{
+      if(lastBtn === "rbracket"){
+        bracket = " &times; ("
+      }else{
+        bracket = " ( ";
+      }
+    }
+
+    contentTop += bracket;
 
   }
 
   function calculateResult(intermediate){
-    var sum = contentTop;
+    // Run processBrackets if last character is an operator when "=" clicked
+    if(["plus", "minus", "multiply", "divide"].indexOf(lastBtn) >= 0 && !intermediate) processBrackets("rbracket");
 
+    var sum = contentTop,
+        numBrackets = (contentTop.match(/\(/g) || []).length - (contentTop.match(/\)/g) || []).length;
+    
+    // First replace everything that won't change
     sum = sum.replace(/ /g, "");          // remove spaces
     sum = sum.replace(/&#8211;/g, "-");   // replace HTML minus
     sum = sum.replace(/&times;/g, "*");   // replace HTML multiply
@@ -256,24 +286,43 @@ var Calculator = (function(){
     // Check if this intermediate step or final result
     if(intermediate){
       sum = sum.substr(0, sum.length-1);
+      if(numBrackets > 0) return false;
     }else{
-      sum += contentBottom;
-      contentTop += contentBottom;
+      if(!emptyBottom){
+        sum += contentBottom;
+        contentTop += contentBottom;
+      } 
+      
       emptyTop = true;
+      sum += ")".repeat(numBrackets);
+      contentTop += " ) ".repeat(numBrackets);
     }
 
-    var result = eval(sum);
+    // Replace everything that has possible changed
+    sum = sum.replace(/–/g, "-");         // replace weird minus
+    sum = sum.replace(/fact/g, "processFactorize");   // replace to real function name
+    sum = sum.replace(/&pi;/g, "Math.PI");           // replace PI
+    sum = sum.replace(/\*\*/g, "*");      // replace double multiply
+    sum = sum.replace(/--/g, "+");        // replace double minus
 
+    // If sum is empty string set it to zero
+    if(sum === ""){
+      sum = "0";
+      contentTop = "0";
+    }
+    
+    var result = eval(sum);
     result = Math.round(result * 1000000) / 1000000;
     contentBottom = result.toString();
 
     // Check for infinity
-    if(contentBottom === "Infinity"){
+    if(contentBottom === "Infinity" || contentBottom === "NaN"){
       contentBottom = "0";
-      contentTop = "Sum resulted in infiniity";
+      contentTop = "Sum is invalid or too large";
       emptyTop = true;
       return false;
     }
+
     // Make sure result will be removed if something else is clicked
     emptyBottom = true;
 
@@ -281,6 +330,9 @@ var Calculator = (function(){
     if(!intermediate){
       addToHistory();
     }
+
+    //console.log(eval("processFactorize(3)"));
+
   }
 
   function addToHistory(){
@@ -300,13 +352,15 @@ var Calculator = (function(){
     ul.append(liBottom);
     historyList.prepend(ul);
 
+    // Event handler to put history back in front
     $("#history .items ul").unbind().on("click", function(){
       var $lis = $(this).find("li");
       contentTop = $lis.eq(0).html();
       contentBottom = $lis.eq(1).html();
-      
+
       emptyBottom = true;
       emptyTop = false;
+      lastBtn = "";
 
       Display.updateContent(contentTop, contentBottom);
     });
@@ -314,14 +368,37 @@ var Calculator = (function(){
   }
 
   function processPlusMinus(){
+    if(emptyBottom && lastBtn === "rbracket"){
+      contentTop += " &times; ";
+    }
 
+    if(contentBottom !== "0"){
+      if(contentBottom.slice(0,1) === "-"){
+        contentBottom = contentBottom.slice(1, contentBottom.length);
+      }else{
+        contentBottom = "-" + contentBottom;
+      }
+    }
+
+    emptyBottom = false;
   }
 
   function processFactorize(){
+    // Calculate factorial
+    if(arguments[0] > 0){
+      var rval=1;
+      for (var i = 2; i <= arguments[0]; i++)
+          rval = rval * i;
+      return rval;
+    }
 
-  }
-
-  function processPi(){
+    // Else if button is clicked
+    if(contentTop.charAt(contentTop.length-2) !== ")" ){
+      contentTop += " fact( ";
+      contentTop += contentBottom;
+      contentTop += " ) ";
+      emptyBottom = true;
+    }
 
   }
 
@@ -349,7 +426,6 @@ var Calculator = (function(){
   function processGonio(val){
 
   }
-
 
 
   return {
