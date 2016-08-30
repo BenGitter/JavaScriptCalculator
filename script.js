@@ -150,6 +150,8 @@ var Calculator = (function(){
         case "sin": case "cos": case "tan":
           processGonio(val);
           break;
+        default:
+          console.log("Not handled in this object");
       }
 
       // Update display after button press has been processed
