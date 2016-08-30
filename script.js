@@ -173,9 +173,17 @@ var Calculator = (function(){
       emptyBottom = false;  // Set back to false
     }
 
+    if([")"].indexOf(contentTop.charAt(contentTop.length -2)) >= 0){
+      return false;
+    }
+
+
+
     // Process PI 
-    if(parseInt(lastBtn) > 0) contentBottom += " &times; "
+    if(parseInt(lastBtn) > 0 && val === "pi") contentBottom += " &times; ";
+    if(parseInt(val) > 0 && lastBtn === "pi") contentBottom += " &times; ";
     contentBottom += (val === "pi") ? "&pi;" : val;
+    
   }
 
   function processBasicMath(val){
@@ -210,6 +218,7 @@ var Calculator = (function(){
         contentTop += contentBottom;
       }
 
+      console.log(contentTop.charAt(contentTop.length-2));
       if(emptyBottom && contentTop.charAt(contentTop.length-2) ===  "("){
         contentTop += contentBottom;
       }
@@ -256,14 +265,19 @@ var Calculator = (function(){
       if(numBrackets === 0) return false;
 
       bracket = " ) ";
-      contentTop += contentBottom;
+      // No closing bracket?
+      if([")"].indexOf(contentTop.charAt(contentTop.length -2)) < 0){
+        contentTop += contentBottom;
+      }
       emptyBottom = true;
     }else{
       if(lastBtn === "rbracket"){
-        bracket = " &times; ("
+        bracket = " &times; ( "
       }else{
         bracket = " ( ";
       }
+
+      emptyBottom = true;
     }
 
     contentTop += bracket;
@@ -273,7 +287,10 @@ var Calculator = (function(){
   function calculateResult(intermediate){
     // Run processBrackets if last character is an operator when "=" clicked
     if(["plus", "minus", "multiply", "divide"].indexOf(lastBtn) >= 0 && !intermediate) processBrackets("rbracket");
-
+    if([";", "+"].indexOf(contentTop.charAt(contentTop.length -2)) >= 0){
+        // What if end with operator...
+        //if(!intermediate && emptyBottom) return false;
+    }
     var sum = contentTop,
         numBrackets = (contentTop.match(/\(/g) || []).length - (contentTop.match(/\)/g) || []).length;
     
@@ -288,7 +305,8 @@ var Calculator = (function(){
       sum = sum.substr(0, sum.length-1);
       if(numBrackets > 0) return false;
     }else{
-      if(!emptyBottom){
+      //if(!emptyBottom){
+      if([")"].indexOf(contentTop.charAt(contentTop.length -2)) < 0){
         sum += contentBottom;
         contentTop += contentBottom;
       } 
@@ -403,8 +421,10 @@ var Calculator = (function(){
   }
 
   function processRemove(val){
+    lastBtn = "";
+
     if(val === "ce"){
-      contentBottom = "0";
+      contentBottom = "0"; 
     }else if(val === "c"){
       contentTop = "";
       contentBottom = "0";
@@ -414,9 +434,7 @@ var Calculator = (function(){
       }else{
         contentBottom = "0";
       }
-    }
-
-    lastBtn = "";
+    }   
   }
 
   function processSpecial(val){
