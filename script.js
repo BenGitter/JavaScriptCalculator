@@ -330,7 +330,8 @@ var Calculator = (function(){
     }
     
     var result = eval(sum);
-    result = Math.round(result * 1000000) / 1000000;
+    var rounding = 10000000000000000
+    result = Math.round(result * rounding) / rounding;
     contentBottom = result.toString();
 
     // Check for infinity
@@ -404,6 +405,7 @@ var Calculator = (function(){
   function processFactorize(){
     // Calculate factorial
     if(arguments[0] > 0){
+      if(arguments[0] > 167) arguments[0] = 168;
       var rval=1;
       for (var i = 2; i <= arguments[0]; i++)
           rval = rval * i;
