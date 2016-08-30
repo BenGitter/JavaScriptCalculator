@@ -150,8 +150,6 @@ var Calculator = (function(){
         case "sin": case "cos": case "tan":
           processGonio(val);
           break;
-        default:
-          console.log("Key not found!");
       }
 
       // Update display after button press has been processed
@@ -218,7 +216,6 @@ var Calculator = (function(){
         contentTop += contentBottom;
       }
 
-      console.log(contentTop.charAt(contentTop.length-2));
       if(emptyBottom && contentTop.charAt(contentTop.length-2) ===  "("){
         contentTop += contentBottom;
       }
@@ -262,7 +259,9 @@ var Calculator = (function(){
     // Right bracket or left
     if(val === "rbracket"){
       // Don't do anything when no closing bracket is needed
-      if(numBrackets === 0) return false;
+      if(numBrackets === 0){
+        return false;
+      } 
 
       bracket = " ) ";
       // No closing bracket?
@@ -271,7 +270,7 @@ var Calculator = (function(){
       }
       emptyBottom = true;
     }else{
-      if(lastBtn === "rbracket"){
+      if(lastBtn === "rbracket" && contentTop !== ""){
         bracket = " &times; ( "
       }else{
         bracket = " ( ";
@@ -349,9 +348,6 @@ var Calculator = (function(){
     if(!intermediate){
       addToHistory();
     }
-
-    //console.log(eval("processFactorize(3)"));
-
   }
 
   function addToHistory(){
