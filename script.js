@@ -146,12 +146,10 @@ var Calculator = (function(){
         case "ce": case "c": case "back":
           processRemove(val);
           break;
-        case "squared": case "power": case "sqrt": case "base":
-        case "log": case "exp": case "mod":
-          processSpecial(val);
-          break;
+        case "squared": case "power": case "sqrt": 
+        case "base": case "log": case "exp": case "mod":
         case "sin": case "cos": case "tan":
-          processGonio(val);
+          processSpecial(val);
           break;
         default:
           console.log("Not handled in this object");
@@ -332,6 +330,9 @@ var Calculator = (function(){
     sum = sum.replace(/&#8730;/g, "squareRoot");
     sum = sum.replace(/10\^/g, "base");
     sum = sum.replace(/e\^/g, "eBase");
+    sum = sum.replace(/sin\<sup\>-1\<\/sup\>/g, "asin");
+    sum = sum.replace(/cos\<sup\>-1\<\/sup\>/g, "acos");
+    sum = sum.replace(/tan\<sup\>-1\<\/sup\>/g, "atan");
 
     // If sum is empty string set it to zero
     if(sum === ""){
@@ -339,6 +340,8 @@ var Calculator = (function(){
       contentTop = "0";
     }
     
+    console.log(sum);
+
     var result = eval(sum);
     var rounding = 10000000000000000
     result = Math.round(result * rounding) / rounding;
@@ -461,6 +464,15 @@ var Calculator = (function(){
         case "base":
           funcName = "10^( "
           break;
+        case "sin":
+          funcName = "sin( ";
+          break;
+        case "cos":
+          funcName = "cos( ";
+          break;
+        case "tan":
+          funcName = "tan( ";
+          break;
       }
     }else{
       switch(val){
@@ -472,6 +484,15 @@ var Calculator = (function(){
           break;
         case "base":
           funcName = "e^( "
+          break;
+        case "sin":
+          funcName = "sin<sup>-1</sup>( ";
+          break;
+        case "cos":
+          funcName = "cos<sup>-1</sup>( ";
+          break;
+        case "tan":
+          funcName = "tan<sup>-1</sup>( ";
           break;
       }
     }
@@ -485,10 +506,6 @@ var Calculator = (function(){
 
     calculateResult(false, true);
     emptyTop = false;
-  }
-
-  function processGonio(val){
-
   }
 
   // Functions to calculate squared etc.
@@ -510,6 +527,30 @@ var Calculator = (function(){
 
   function eBase(num){
     return Math.pow(Math.E, num);
+  }
+
+  function sin(num){
+    return Math.sin(num/180*Math.PI);
+  }
+
+  function cos(num){
+    return Math.cos(num/180*Math.PI);
+  }
+
+  function tan(num){
+    return Math.tan(num/180*Math.PI);
+  }
+
+  function asin(num){
+    return Math.asin(num/180*Math.PI);
+  }
+
+  function acos(num){
+    return Math.acos(num/180*Math.PI);
+  }
+
+  function atan(num){
+    return Math.atan(num/180*Math.PI);
   }
 
 
