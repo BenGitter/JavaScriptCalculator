@@ -77,10 +77,13 @@ var Display = (function(){
     displayBottom.html(contentBottom);
   }
 
+  function getBtnState(){
+    return extraBtnState;
+  }
   return {
     // Variables to make available to the rest of the code
     init: init,                   // init function to get started
-    extraBtnState: extraBtnState, // needed to know what special button is clicked
+    getBtnState: getBtnState, // needed to know what special button is clicked
     updateContent: updateContent  // Make sure Calculator can call updateContent
   };
 })();
@@ -318,11 +321,17 @@ var Calculator = (function(){
     }
 
     // Replace everything that has possible changed
-    sum = sum.replace(/–/g, "-");         // replace weird minus
-    sum = sum.replace(/fact/g, "processFactorize");   // replace to real function name
-    sum = sum.replace(/&pi;/g, "Math.PI");           // replace PI
-    sum = sum.replace(/\*\*/g, "*");      // replace double multiply
-    sum = sum.replace(/--/g, "+");        // replace double minus
+    sum = sum.replace(/–/g, "-");           // replace weird minus
+    sum = sum.replace(/&pi;/g, "Math.PI");  // replace PI
+    sum = sum.replace(/\*\*/g, "*");        // replace double multiply
+    sum = sum.replace(/--/g, "+");          // replace double minus
+
+    // Replace short names to real function names
+    sum = sum.replace(/fact/g, "processFactorize");   
+    sum = sum.replace(/sqr/g, "square"); 
+    sum = sum.replace(/&#8730;/g, "squareRoot");
+    sum = sum.replace(/10\^/g, "base");
+    sum = sum.replace(/e\^/g, "eBase");
 
     // If sum is empty string set it to zero
     if(sum === ""){
@@ -347,7 +356,7 @@ var Calculator = (function(){
     emptyBottom = true;
 
     // Add to history if final result is calculated
-    if(!intermediate){
+    if(!intermediate && !arguments[1]){
       addToHistory();
     }
   }
@@ -438,11 +447,69 @@ var Calculator = (function(){
   }
 
   function processSpecial(val){
+    var funcName = "";
 
+    // What to do if extra button aren't shown
+    if(!Display.getBtnState()){
+      switch(val){
+        case "squared":
+          funcName = "sqr( ";
+          break;
+        case "sqrt":
+          funcName = "&#8730;( "
+          break;
+        case "base":
+          funcName = "10^( "
+          break;
+      }
+    }else{
+      switch(val){
+        case "squared":
+          funcName = "cube( ";
+          break;
+        case "sqrt":
+          funcName = "( 1/"
+          break;
+        case "base":
+          funcName = "e^( "
+          break;
+      }
+    }
+
+    if(contentTop.charAt(contentTop.length-2) !== ")" ){
+      contentTop += " " + funcName;
+      contentTop += contentBottom;
+      contentTop += " ) ";
+      emptyBottom = true;
+    }
+
+    calculateResult(false, true);
+    emptyTop = false;
   }
 
   function processGonio(val){
 
+  }
+
+  // Functions to calculate squared etc.
+  function square(num){
+    return num*num;
+  }
+
+  function squareRoot(num){
+    return Math.sqrt(num);
+  }
+
+  function base(num){
+    return Math.pow(10, num);
+  }
+
+  function cube(num){
+    return num*num*num;
+  }
+
+  function eBase(num){
+    return Math.pow(Math.E, num);
   }
 
 
