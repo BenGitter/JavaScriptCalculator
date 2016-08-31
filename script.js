@@ -131,7 +131,8 @@ var Calculator = (function(){
         case "lbracket": case "rbracket":
           processBrackets(val);
           break;
-        case "divide": case "multiply": case "minus": case "plus":
+        case "divide": case "multiply": case "minus": 
+        case "plus": case "mod": case "power":
           processBasicMath(val);
           break;
         case "is":
@@ -146,14 +147,16 @@ var Calculator = (function(){
         case "ce": case "c": case "back":
           processRemove(val);
           break;
-        case "squared": case "power": case "sqrt": 
-        case "base": case "log": case "exp": case "mod":
+        case "squared": case "sqrt": 
+        case "base": case "log": 
         case "sin": case "cos": case "tan":
           processSpecial(val);
           break;
-        default:
-          console.log("Not handled in this object");
+        case "exp": 
+          processExtraSpecial(val);
+          break;
       }
+
 
       // Update display after button press has been processed
       Display.updateContent(contentTop, contentBottom);
@@ -191,7 +194,7 @@ var Calculator = (function(){
     var operator,                       // Operator JS
         operatorHTML,                   // Operator HTML
         lengthOperator = [3, 9, 9, 10], // Length of operatorHTML
-        index = ["plus", "minus", "multiply", "divide"].indexOf(lastBtn); // Check if lastBtn was an operator
+        index = ["plus", "minus", "multiply", "divide", "power"].indexOf(lastBtn); // Check if lastBtn was an operator
 
     switch(val){
       case "plus":
@@ -210,7 +213,24 @@ var Calculator = (function(){
         operator = "/";
         operatorHTML = " &divide; ";
         break;
+      case "mod":
+        operator = "%";
+        operatorHTML = " Mod ";
+        break;
+      case "power":
+        operatorHTML = (!Display.getBtnState()) ? " ^ " : " yroot ";
+        break;
     }
+
+      // Calculate exp if necessary: prevent e+ in contentTop
+      if(contentBottom.match("e+")){
+          console.log(contentBottom);
+          contentBottom = contentBottom.replace(/e+/, "*Math.pow(10,");
+          console.log(contentBottom);
+          contentBottom += ")";
+          console.log(contentBottom);
+          contentBottom = eval(contentBottom);
+      }
 
     // Check if there already was an operator at the end
     if(index < 0){
@@ -288,7 +308,7 @@ var Calculator = (function(){
 
   function calculateResult(intermediate){
     // Run processBrackets if last character is an operator when "=" clicked
-    if(["plus", "minus", "multiply", "divide"].indexOf(lastBtn) >= 0 && !intermediate) processBrackets("rbracket");
+    if(["plus", "minus", "multiply", "divide", "power"].indexOf(lastBtn) >= 0 && !intermediate) processBrackets("rbracket");
     if([";", "+"].indexOf(contentTop.charAt(contentTop.length -2)) >= 0){
         // What if end with operator...
         //if(!intermediate && emptyBottom) return false;
@@ -306,10 +326,10 @@ var Calculator = (function(){
     if(intermediate){
       sum = sum.substr(0, sum.length-1);
       if(numBrackets > 0) return false;
+
     }else{
-      //if(!emptyBottom){
       if([")"].indexOf(contentTop.charAt(contentTop.length -2)) < 0){
-        sum += contentBottom;
+        sum += contentBottom;    
         contentTop += contentBottom;
       } 
       
@@ -333,13 +353,23 @@ var Calculator = (function(){
     sum = sum.replace(/sin\<sup\>-1\<\/sup\>/g, "asin");
     sum = sum.replace(/cos\<sup\>-1\<\/sup\>/g, "acos");
     sum = sum.replace(/tan\<sup\>-1\<\/sup\>/g, "atan");
+    sum = sum.replace(/Mod/g, "%");
+
+    // What if e+ is still there (normally fixed by processBasicMath)
+    if(contentBottom.toString().match("e+")){
+      sum = sum.replace(/e\+/g, "*Math.pow(10,");
+      sum += ")";
+    }
+    
+    processPower("^");
+    processPower("yroot");
 
     // If sum is empty string set it to zero
     if(sum === ""){
       sum = "0";
       contentTop = "0";
     }
-    
+
     console.log(sum);
 
     var result = eval(sum);
@@ -361,6 +391,49 @@ var Calculator = (function(){
     // Add to history if final result is calculated
     if(!intermediate && !arguments[1]){
       addToHistory();
+    }
+
+    // Function for processing x^y and yroot  function processPower(identifier){
+    function processPower(identifier){
+      while(sum.indexOf(identifier) >= 0){
+        var checkSum = sum.replace(/\d/g, "X");
+        var middleIndex = sum.indexOf(identifier);
+        var firstIndex = -1;
+        var lastIndex = middleIndex;
+
+        for(var i = middleIndex-1; i >= 0; i--){
+          if(checkSum.charAt(i).toString() !== "X"){
+            firstIndex = i;
+            break;
+          }
+        }
+
+        var j = middleIndex + 5;
+        for(j; j < sum.length; j++){
+          if(checkSum.charAt(j).toString() !== "X"){
+            lastIndex = j;
+            break;
+          }
+        }
+
+        if(lastIndex === middleIndex) lastIndex = sum.length;
+
+        //console.log(sum.substring(firstIndex+1, lastIndex));
+        console.log(sum);
+        var firstNumber = sum.slice(firstIndex+1, middleIndex);
+        var secondNumber = sum.slice(middleIndex+5, lastIndex);
+        
+        console.log(firstNumber, secondNumber);
+
+        if(identifier === "^"){
+          sum = sum.slice(0, firstIndex+1) + "Math.pow(" + firstNumber + "," + 
+              secondNumber + ")" + sum.slice(lastIndex, sum.length);
+        }
+        if(identifier === "yroot"){
+          sum = sum.slice(0, firstIndex+1) + "Math.pow(" + secondNumber + "," + 
+              1/firstNumber + ")" + sum.slice(lastIndex, sum.length);
+        }
+      }
     }
   }
 
@@ -473,6 +546,9 @@ var Calculator = (function(){
         case "tan":
           funcName = "tan( ";
           break;
+        case "log":
+          funcName = "log( ";
+          break;
       }
     }else{
       switch(val){
@@ -494,6 +570,9 @@ var Calculator = (function(){
         case "tan":
           funcName = "tan<sup>-1</sup>( ";
           break;
+        case "log":
+          funcName = "ln( ";
+          break;
       }
     }
 
@@ -506,6 +585,13 @@ var Calculator = (function(){
 
     calculateResult(false, true);
     emptyTop = false;
+  }
+
+  function processExtraSpecial(val){
+    // exp button
+    if(val === "exp"){
+      contentBottom += "e+0";
+    }
   }
 
   // Functions to calculate squared etc.
@@ -552,6 +638,15 @@ var Calculator = (function(){
   function atan(num){
     return Math.atan(num/180*Math.PI);
   }
+
+  function log(num){
+    return Math.log10(num);
+  }
+
+  function ln(num){
+    return Math.log(num);
+  }
+
 
 
   return {
