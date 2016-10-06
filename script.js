@@ -373,7 +373,7 @@ var Calculator = (function(){
     console.log(sum);
 
     var result = eval(sum);
-    var rounding = 10000000000000000
+    var rounding = 100000000000000;
     result = Math.round(result * rounding) / rounding;
     contentBottom = result.toString();
 
