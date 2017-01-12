@@ -224,11 +224,11 @@ var Calculator = (function(){
 
       // Calculate exp if necessary: prevent e+ in contentTop
       if(contentBottom.match("e+")){
-          console.log(contentBottom);
+          // console.log(contentBottom);
           contentBottom = contentBottom.replace(/e+/, "*Math.pow(10,");
-          console.log(contentBottom);
+          // console.log(contentBottom);
           contentBottom += ")";
-          console.log(contentBottom);
+          // console.log(contentBottom);
           contentBottom = eval(contentBottom);
       }
 
@@ -370,7 +370,7 @@ var Calculator = (function(){
       contentTop = "0";
     }
 
-    console.log(sum);
+    // console.log(sum);
 
     var result = eval(sum);
     var rounding = 100000000000000;
@@ -419,11 +419,11 @@ var Calculator = (function(){
         if(lastIndex === middleIndex) lastIndex = sum.length;
 
         //console.log(sum.substring(firstIndex+1, lastIndex));
-        console.log(sum);
+        // console.log(sum);
         var firstNumber = sum.slice(firstIndex+1, middleIndex);
         var secondNumber = sum.slice(middleIndex+5, lastIndex);
         
-        console.log(firstNumber, secondNumber);
+        // console.log(firstNumber, secondNumber);
 
         if(identifier === "^"){
           sum = sum.slice(0, firstIndex+1) + "Math.pow(" + firstNumber + "," + 
